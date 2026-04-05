@@ -1,0 +1,1135 @@
+// ============================================================
+// Prisma Schema — Virtual Office OS
+// Generated from SQL migrations 001–005
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum OrgStatus {
+  active
+  inactive
+
+  @@map("org_status")
+}
+
+enum DepartmentType {
+  executive
+  sales
+  marketing
+  customer_service
+  operations
+  procurement
+  accounting
+  finance
+  hr
+  administration
+  legal
+  it
+  data_bi
+  rd
+  international
+  general
+
+  @@map("department_type")
+}
+
+enum DepartmentStatus {
+  active
+  inactive
+
+  @@map("department_status")
+}
+
+enum AuthProvider {
+  local
+  google
+  microsoft
+  oidc
+  saml
+
+  @@map("auth_provider")
+}
+
+enum UserType {
+  human
+  external
+  system
+
+  @@map("user_type")
+}
+
+enum UserStatus {
+  invited
+  active
+  suspended
+  deactivated
+
+  @@map("user_status")
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  contract
+  consultant
+  intern
+
+  @@map("employment_type")
+}
+
+enum RoleType {
+  human
+  ai
+  external
+  admin
+  system
+
+  @@map("role_type")
+}
+
+enum RoleStatus {
+  active
+  inactive
+
+  @@map("role_status")
+}
+
+enum PermissionEffect {
+  allow
+  deny
+
+  @@map("permission_effect")
+}
+
+enum AssignmentStatus {
+  active
+  inactive
+
+  @@map("assignment_status")
+}
+
+enum ProjectStatus {
+  planning
+  active
+  on_hold
+  completed
+  archived
+
+  @@map("project_status")
+}
+
+enum Priority {
+  low
+  medium
+  high
+  critical
+
+  @@map("priority")
+}
+
+enum TaskStatus {
+  draft
+  open
+  in_progress
+  blocked
+  review
+  completed
+  cancelled
+  archived
+
+  @@map("task_status")
+}
+
+enum MeetingLocationType {
+  virtual
+  physical
+  hybrid
+
+  @@map("meeting_location_type")
+}
+
+enum MeetingStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+
+  @@map("meeting_status")
+}
+
+enum AttendeeResponseStatus {
+  pending
+  accepted
+  declined
+  tentative
+
+  @@map("attendee_response_status")
+}
+
+enum ActionItemStatus {
+  open
+  converted
+  completed
+  cancelled
+
+  @@map("action_item_status")
+}
+
+enum ChatChannelType {
+  direct
+  group
+  department
+  project
+  external_shared
+
+  @@map("chat_channel_type")
+}
+
+enum ChatChannelStatus {
+  active
+  archived
+
+  @@map("chat_channel_status")
+}
+
+enum DocumentStatus {
+  draft
+  active
+  under_review
+  approved
+  superseded
+  archived
+
+  @@map("document_status")
+}
+
+enum DocumentClassification {
+  public
+  internal
+  confidential
+  restricted
+
+  @@map("document_classification")
+}
+
+enum VersionStatus {
+  current
+  superseded
+  archived
+
+  @@map("version_status")
+}
+
+enum AccessSubjectType {
+  user
+  role
+  department
+  project
+  external_party
+
+  @@map("access_subject_type")
+}
+
+enum AccessLevel {
+  view
+  edit
+  approve
+  export
+
+  @@map("access_level")
+}
+
+enum WorkflowStatus {
+  active
+  completed
+  cancelled
+  failed
+  escalated
+
+  @@map("workflow_status")
+}
+
+enum ActorType {
+  human
+  ai
+  system
+
+  @@map("actor_type")
+}
+
+enum ApprovalRequestStatus {
+  draft
+  submitted
+  in_review
+  approved
+  rejected
+  returned
+  cancelled
+
+  @@map("approval_request_status")
+}
+
+enum ApproverType {
+  user
+  role
+  department_head
+  finance
+  executive
+
+  @@map("approver_type")
+}
+
+enum ApprovalDecisionStatus {
+  pending
+  approved
+  rejected
+  returned
+  skipped
+  escalated
+
+  @@map("approval_decision_status")
+}
+
+enum ApprovalDecisionType {
+  approve
+  reject
+  return_request
+
+  @@map("approval_decision_type")
+}
+
+enum NotificationPriority {
+  low
+  normal
+  high
+  urgent
+
+  @@map("notification_priority")
+}
+
+enum NotificationStatus {
+  unread
+  read
+  archived
+
+  @@map("notification_status")
+}
+
+enum AiRequesterType {
+  human
+  system
+  workflow
+
+  @@map("ai_requester_type")
+}
+
+enum AiRequestStatus {
+  queued
+  processing
+  completed
+  failed
+  review_required
+
+  @@map("ai_request_status")
+}
+
+enum AiOutputType {
+  summary
+  draft
+  extraction
+  recommendation
+  classification
+  comparison
+
+  @@map("ai_output_type")
+}
+
+// ============================================================
+// Models — Identity & Access (Migration 001)
+// ============================================================
+
+model Organization {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(255)
+  code            String   @unique @db.VarChar(50)
+  status          OrgStatus @default(active)
+  defaultTimezone String   @default("Asia/Bangkok") @map("default_timezone") @db.VarChar(50)
+  defaultLocale   String   @default("th") @map("default_locale") @db.VarChar(10)
+  logoUrl         String?  @map("logo_url")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  departments      Department[]
+  users            User[]
+  employeeProfiles EmployeeProfile[]
+  roles            Role[]
+  projects         Project[]
+  tasks            Task[]
+  meetings         Meeting[]
+  chatChannels     ChatChannel[]
+  documents        Document[]
+  workflowInstances WorkflowInstance[]
+  approvalRequests ApprovalRequest[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+  aiRequests       AiRequest[]
+
+  @@map("organizations")
+}
+
+model Department {
+  id                 String          @id @default(uuid()) @db.Uuid
+  orgId              String          @map("org_id") @db.Uuid
+  name               String          @db.VarChar(255)
+  code               String          @db.VarChar(50)
+  parentDepartmentId String?         @map("parent_department_id") @db.Uuid
+  departmentType     DepartmentType  @default(general) @map("department_type")
+  status             DepartmentStatus @default(active)
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  organization    Organization     @relation(fields: [orgId], references: [id])
+  parentDepartment Department?     @relation("DepartmentTree", fields: [parentDepartmentId], references: [id])
+  childDepartments Department[]    @relation("DepartmentTree")
+  employeeProfiles EmployeeProfile[]
+  tasks            Task[]
+  meetings         Meeting[]
+  chatChannels     ChatChannel[]
+  documents        Document[]
+  projects         Project[]
+
+  @@unique([orgId, code])
+  @@index([orgId, status])
+  @@map("departments")
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  orgId        String       @map("org_id") @db.Uuid
+  email        String       @unique @db.VarChar(255)
+  passwordHash String?      @map("password_hash")
+  authProvider AuthProvider @default(local) @map("auth_provider")
+  userType     UserType     @default(human) @map("user_type")
+  status       UserStatus   @default(invited)
+  mfaEnabled   Boolean      @default(false) @map("mfa_enabled")
+  lastLoginAt  DateTime?    @map("last_login_at") @db.Timestamptz
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  isDeleted    Boolean      @default(false) @map("is_deleted")
+  deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz
+
+  organization      Organization         @relation(fields: [orgId], references: [id])
+  employeeProfile   EmployeeProfile?
+  managedProfiles   EmployeeProfile[]    @relation("ManagerRelation")
+  sessions          Session[]
+  userRoleAssignments UserRoleAssignment[]
+
+  // Tasks relations
+  ownedTasks        Task[]               @relation("TaskOwner")
+  assignedTasks     Task[]               @relation("TaskAssignee")
+  createdTasks      Task[]               @relation("TaskCreator")
+  updatedTasks      Task[]               @relation("TaskUpdater")
+  taskComments      TaskComment[]
+  completedChecklistItems TaskChecklistItem[] @relation("ChecklistCompleter")
+
+  // Projects
+  ownedProjects     Project[]            @relation("ProjectOwner")
+  projectMemberships ProjectMember[]
+
+  // Meetings
+  organizedMeetings Meeting[]            @relation("MeetingOrganizer")
+  meetingAttendances MeetingAttendee[]
+  meetingNotes      MeetingNote[]
+  actionItems       ActionItem[]
+
+  // Chat
+  createdChannels   ChatChannel[]        @relation("ChannelCreator")
+  chatMemberships   ChatChannelMember[]
+  chatMessages      ChatMessage[]
+
+  // Documents
+  ownedDocuments    Document[]           @relation("DocumentOwner")
+  createdDocuments  Document[]           @relation("DocumentCreator")
+  updatedDocuments  Document[]           @relation("DocumentUpdater")
+  uploadedVersions  DocumentVersion[]
+
+  // Workflows
+  initiatedWorkflows WorkflowInstance[]
+  workflowEvents    WorkflowEvent[]
+
+  // Approvals
+  approvalRequests  ApprovalRequest[]
+  approvalDecisions ApprovalDecision[]
+
+  // Notifications
+  notifications     Notification[]
+
+  // Audit
+  auditLogs         AuditLog[]
+
+  // AI
+  aiRequests        AiRequest[]
+  approvedAiOutputs AiOutput[]
+
+  @@index([orgId, status])
+  @@index([email])
+  @@map("users")
+}
+
+model EmployeeProfile {
+  id             String          @id @default(uuid()) @db.Uuid
+  orgId          String          @map("org_id") @db.Uuid
+  userId         String          @unique @map("user_id") @db.Uuid
+  employeeCode   String?         @map("employee_code") @db.VarChar(50)
+  firstName      String          @map("first_name") @db.VarChar(100)
+  lastName       String          @map("last_name") @db.VarChar(100)
+  displayName    String?         @map("display_name") @db.VarChar(200)
+  jobTitle       String?         @map("job_title") @db.VarChar(200)
+  managerUserId  String?         @map("manager_user_id") @db.Uuid
+  departmentId   String?         @map("department_id") @db.Uuid
+  employmentType EmploymentType? @default(full_time) @map("employment_type")
+  startDate      DateTime?       @map("start_date") @db.Date
+  endDate        DateTime?       @map("end_date") @db.Date
+  workLocation   String?         @map("work_location") @db.VarChar(200)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+  manager      User?        @relation("ManagerRelation", fields: [managerUserId], references: [id])
+  department   Department?  @relation(fields: [departmentId], references: [id])
+
+  @@unique([orgId, employeeCode])
+  @@map("employee_profiles")
+}
+
+model Role {
+  id          String     @id @default(uuid()) @db.Uuid
+  orgId       String     @map("org_id") @db.Uuid
+  code        String     @db.VarChar(100)
+  name        String     @db.VarChar(200)
+  roleType    RoleType   @default(human) @map("role_type")
+  description String?
+  status      RoleStatus @default(active)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  organization    Organization       @relation(fields: [orgId], references: [id])
+  rolePermissions RolePermission[]
+  userRoleAssignments UserRoleAssignment[]
+
+  @@unique([orgId, code])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(100)
+  moduleName  String   @map("module_name") @db.VarChar(50)
+  actionName  String   @map("action_name") @db.VarChar(50)
+  scopeType   String?  @default("global") @map("scope_type") @db.VarChar(50)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String           @id @default(uuid()) @db.Uuid
+  roleId       String           @map("role_id") @db.Uuid
+  permissionId String           @map("permission_id") @db.Uuid
+  effect       PermissionEffect @default(allow)
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRoleAssignment {
+  id            String           @id @default(uuid()) @db.Uuid
+  userId        String           @map("user_id") @db.Uuid
+  roleId        String           @map("role_id") @db.Uuid
+  effectiveFrom DateTime         @default(now()) @map("effective_from") @db.Timestamptz
+  effectiveTo   DateTime?        @map("effective_to") @db.Timestamptz
+  status        AssignmentStatus @default(active)
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("user_role_assignments")
+}
+
+model Session {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  refreshTokenHash String    @map("refresh_token_hash")
+  ipAddress        String?   @map("ip_address") @db.VarChar(45)
+  userAgent        String?   @map("user_agent")
+  lastSeenAt       DateTime? @default(now()) @map("last_seen_at") @db.Timestamptz
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ============================================================
+// Models — Work & Collaboration (Migration 002)
+// ============================================================
+
+model Project {
+  id          String        @id @default(uuid()) @db.Uuid
+  orgId       String        @map("org_id") @db.Uuid
+  code        String        @db.VarChar(50)
+  name        String        @db.VarChar(255)
+  description String?
+  departmentId String?      @map("department_id") @db.Uuid
+  ownerUserId String        @map("owner_user_id") @db.Uuid
+  status      ProjectStatus @default(planning)
+  startDate   DateTime?     @map("start_date") @db.Date
+  endDate     DateTime?     @map("end_date") @db.Date
+  priority    Priority?     @default(medium)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  isDeleted   Boolean       @default(false) @map("is_deleted")
+  deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz
+
+  organization Organization   @relation(fields: [orgId], references: [id])
+  department   Department?    @relation(fields: [departmentId], references: [id])
+  owner        User           @relation("ProjectOwner", fields: [ownerUserId], references: [id])
+  members      ProjectMember[]
+  tasks        Task[]
+  meetings     Meeting[]
+  chatChannels ChatChannel[]
+  documents    Document[]
+
+  @@unique([orgId, code])
+  @@index([orgId, status])
+  @@index([ownerUserId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id          String   @id @default(uuid()) @db.Uuid
+  projectId   String   @map("project_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  projectRole String?  @default("member") @map("project_role") @db.VarChar(50)
+  accessLevel String?  @default("contributor") @map("access_level") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model Task {
+  id              String     @id @default(uuid()) @db.Uuid
+  orgId           String     @map("org_id") @db.Uuid
+  projectId       String?    @map("project_id") @db.Uuid
+  departmentId    String?    @map("department_id") @db.Uuid
+  parentTaskId    String?    @map("parent_task_id") @db.Uuid
+  title           String     @db.VarChar(500)
+  description     String?
+  taskType        String?    @default("general") @map("task_type") @db.VarChar(50)
+  priority        Priority   @default(medium)
+  status          TaskStatus @default(open)
+  ownerUserId     String?    @map("owner_user_id") @db.Uuid
+  assigneeUserId  String?    @map("assignee_user_id") @db.Uuid
+  dueAt           DateTime?  @map("due_at") @db.Timestamptz
+  startAt         DateTime?  @map("start_at") @db.Timestamptz
+  completedAt     DateTime?  @map("completed_at") @db.Timestamptz
+  sourceType      String?    @map("source_type") @db.VarChar(50)
+  sourceId        String?    @map("source_id") @db.Uuid
+  aiGenerated     Boolean    @default(false) @map("ai_generated")
+  requiresReview  Boolean    @default(false) @map("requires_review")
+  createdBy       String?    @map("created_by") @db.Uuid
+  updatedBy       String?    @map("updated_by") @db.Uuid
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  isDeleted       Boolean    @default(false) @map("is_deleted")
+  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz
+
+  organization   Organization      @relation(fields: [orgId], references: [id])
+  project        Project?          @relation(fields: [projectId], references: [id])
+  department     Department?       @relation(fields: [departmentId], references: [id])
+  parentTask     Task?             @relation("TaskTree", fields: [parentTaskId], references: [id])
+  childTasks     Task[]            @relation("TaskTree")
+  owner          User?             @relation("TaskOwner", fields: [ownerUserId], references: [id])
+  assignee       User?             @relation("TaskAssignee", fields: [assigneeUserId], references: [id])
+  creator        User?             @relation("TaskCreator", fields: [createdBy], references: [id])
+  updater        User?             @relation("TaskUpdater", fields: [updatedBy], references: [id])
+  checklistItems TaskChecklistItem[]
+  comments       TaskComment[]
+  actionItems    ActionItem[]
+
+  @@index([orgId, status])
+  @@index([assigneeUserId, status])
+  @@index([projectId, status])
+  @@map("tasks")
+}
+
+model TaskChecklistItem {
+  id          String    @id @default(uuid()) @db.Uuid
+  taskId      String    @map("task_id") @db.Uuid
+  title       String    @db.VarChar(500)
+  sortOrder   Int       @default(0) @map("sort_order")
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+  completedBy String?   @map("completed_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  task      Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completer User? @relation("ChecklistCompleter", fields: [completedBy], references: [id])
+
+  @@map("task_checklist_items")
+}
+
+model TaskComment {
+  id           String   @id @default(uuid()) @db.Uuid
+  taskId       String   @map("task_id") @db.Uuid
+  authorUserId String   @map("author_user_id") @db.Uuid
+  commentText  String   @map("comment_text")
+  isInternal   Boolean  @default(true) @map("is_internal")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorUserId], references: [id])
+
+  @@map("task_comments")
+}
+
+model Meeting {
+  id                  String          @id @default(uuid()) @db.Uuid
+  orgId               String          @map("org_id") @db.Uuid
+  title               String          @db.VarChar(500)
+  description         String?
+  meetingType         String?         @default("general") @map("meeting_type") @db.VarChar(50)
+  organizerUserId     String          @map("organizer_user_id") @db.Uuid
+  relatedProjectId    String?         @map("related_project_id") @db.Uuid
+  relatedDepartmentId String?         @map("related_department_id") @db.Uuid
+  startAt             DateTime        @map("start_at") @db.Timestamptz
+  endAt               DateTime        @map("end_at") @db.Timestamptz
+  locationType        MeetingLocationType @default(virtual) @map("location_type")
+  externalLink        String?         @map("external_link")
+  status              MeetingStatus   @default(scheduled)
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  isDeleted           Boolean         @default(false) @map("is_deleted")
+
+  organization    Organization      @relation(fields: [orgId], references: [id])
+  organizer       User              @relation("MeetingOrganizer", fields: [organizerUserId], references: [id])
+  relatedProject  Project?          @relation(fields: [relatedProjectId], references: [id])
+  relatedDepartment Department?     @relation(fields: [relatedDepartmentId], references: [id])
+  attendees       MeetingAttendee[]
+  notes           MeetingNote[]
+  actionItems     ActionItem[]
+
+  @@index([orgId, startAt])
+  @@index([organizerUserId, startAt])
+  @@map("meetings")
+}
+
+model MeetingAttendee {
+  id             String                  @id @default(uuid()) @db.Uuid
+  meetingId      String                  @map("meeting_id") @db.Uuid
+  userId         String?                 @map("user_id") @db.Uuid
+  externalEmail  String?                 @map("external_email") @db.VarChar(255)
+  attendeeRole   String?                 @default("attendee") @map("attendee_role") @db.VarChar(50)
+  responseStatus AttendeeResponseStatus  @default(pending) @map("response_status")
+  attended       Boolean?
+  createdAt      DateTime                @default(now()) @map("created_at") @db.Timestamptz
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id])
+
+  @@map("meeting_attendees")
+}
+
+model MeetingNote {
+  id        String   @id @default(uuid()) @db.Uuid
+  meetingId String   @map("meeting_id") @db.Uuid
+  noteBody  String   @map("note_body")
+  createdBy String?  @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  creator User?   @relation(fields: [createdBy], references: [id])
+
+  @@map("meeting_notes")
+}
+
+model ActionItem {
+  id              String           @id @default(uuid()) @db.Uuid
+  meetingId       String           @map("meeting_id") @db.Uuid
+  sourceAiOutputId String?         @map("source_ai_output_id") @db.Uuid
+  title           String           @db.VarChar(500)
+  description     String?
+  ownerUserId     String?          @map("owner_user_id") @db.Uuid
+  dueAt           DateTime?        @map("due_at") @db.Timestamptz
+  linkedTaskId    String?          @map("linked_task_id") @db.Uuid
+  status          ActionItemStatus @default(open)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  meeting    Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  owner      User?   @relation(fields: [ownerUserId], references: [id])
+  linkedTask Task?   @relation(fields: [linkedTaskId], references: [id])
+
+  @@map("action_items")
+}
+
+model ChatChannel {
+  id           String            @id @default(uuid()) @db.Uuid
+  orgId        String            @map("org_id") @db.Uuid
+  name         String?           @db.VarChar(255)
+  channelType  ChatChannelType   @default(group) @map("channel_type")
+  departmentId String?           @map("department_id") @db.Uuid
+  projectId    String?           @map("project_id") @db.Uuid
+  createdBy    String?           @map("created_by") @db.Uuid
+  status       ChatChannelStatus @default(active)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  organization Organization       @relation(fields: [orgId], references: [id])
+  department   Department?        @relation(fields: [departmentId], references: [id])
+  project      Project?           @relation(fields: [projectId], references: [id])
+  creator      User?              @relation("ChannelCreator", fields: [createdBy], references: [id])
+  members      ChatChannelMember[]
+  messages     ChatMessage[]
+
+  @@map("chat_channels")
+}
+
+model ChatChannelMember {
+  id             String   @id @default(uuid()) @db.Uuid
+  channelId      String   @map("channel_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  membershipRole String?  @default("member") @map("membership_role") @db.VarChar(20)
+  joinedAt       DateTime @default(now()) @map("joined_at") @db.Timestamptz
+
+  channel ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id])
+
+  @@unique([channelId, userId])
+  @@map("chat_channel_members")
+}
+
+model ChatMessage {
+  id              String    @id @default(uuid()) @db.Uuid
+  channelId       String    @map("channel_id") @db.Uuid
+  senderUserId    String    @map("sender_user_id") @db.Uuid
+  parentMessageId String?   @map("parent_message_id") @db.Uuid
+  messageText     String    @map("message_text")
+  messageType     String?   @default("text") @map("message_type") @db.VarChar(20)
+  sentAt          DateTime  @default(now()) @map("sent_at") @db.Timestamptz
+  editedAt        DateTime? @map("edited_at") @db.Timestamptz
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz
+
+  channel       ChatChannel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  sender        User         @relation(fields: [senderUserId], references: [id])
+  parentMessage ChatMessage? @relation("MessageThread", fields: [parentMessageId], references: [id])
+  replies       ChatMessage[] @relation("MessageThread")
+
+  @@index([channelId, sentAt])
+  @@map("chat_messages")
+}
+
+// ============================================================
+// Models — Documents & Approvals (Migration 003)
+// ============================================================
+
+model Document {
+  id               String                 @id @default(uuid()) @db.Uuid
+  orgId            String                 @map("org_id") @db.Uuid
+  projectId        String?                @map("project_id") @db.Uuid
+  departmentId     String?                @map("department_id") @db.Uuid
+  ownerUserId      String                 @map("owner_user_id") @db.Uuid
+  documentType     String                 @default("general") @map("document_type") @db.VarChar(50)
+  title            String                 @db.VarChar(500)
+  currentVersionId String?                @map("current_version_id") @db.Uuid
+  status           DocumentStatus         @default(draft)
+  classification   DocumentClassification @default(internal)
+  isControlled     Boolean                @default(false) @map("is_controlled")
+  archivedAt       DateTime?              @map("archived_at") @db.Timestamptz
+  createdBy        String?                @map("created_by") @db.Uuid
+  updatedBy        String?                @map("updated_by") @db.Uuid
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  isDeleted        Boolean                @default(false) @map("is_deleted")
+  deletedAt        DateTime?              @map("deleted_at") @db.Timestamptz
+
+  organization   Organization     @relation(fields: [orgId], references: [id])
+  project        Project?         @relation(fields: [projectId], references: [id])
+  department     Department?      @relation(fields: [departmentId], references: [id])
+  owner          User             @relation("DocumentOwner", fields: [ownerUserId], references: [id])
+  creator        User?            @relation("DocumentCreator", fields: [createdBy], references: [id])
+  updater        User?            @relation("DocumentUpdater", fields: [updatedBy], references: [id])
+  currentVersion DocumentVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  versions       DocumentVersion[] @relation("DocumentVersions")
+  tags           DocumentTag[]
+  accessRules    DocumentAccessRule[]
+
+  @@index([orgId, status])
+  @@index([ownerUserId])
+  @@map("documents")
+}
+
+model DocumentVersion {
+  id               String        @id @default(uuid()) @db.Uuid
+  documentId       String        @map("document_id") @db.Uuid
+  versionNo        Int           @map("version_no")
+  storageObjectKey String        @map("storage_object_key")
+  fileName         String        @map("file_name") @db.VarChar(500)
+  mimeType         String?       @map("mime_type") @db.VarChar(100)
+  fileSizeBytes    BigInt?       @map("file_size_bytes")
+  checksum         String?       @db.VarChar(128)
+  uploadedBy       String?       @map("uploaded_by") @db.Uuid
+  uploadedAt       DateTime      @default(now()) @map("uploaded_at") @db.Timestamptz
+  versionStatus    VersionStatus @default(current) @map("version_status")
+  aiSummaryText    String?       @map("ai_summary_text")
+
+  document          Document   @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+  currentOfDocument Document[] @relation("CurrentVersion")
+  uploader          User?      @relation(fields: [uploadedBy], references: [id])
+
+  @@unique([documentId, versionNo])
+  @@map("document_versions")
+}
+
+model DocumentTag {
+  id         String   @id @default(uuid()) @db.Uuid
+  documentId String   @map("document_id") @db.Uuid
+  tagName    String   @map("tag_name") @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_tags")
+}
+
+model DocumentAccessRule {
+  id                String            @id @default(uuid()) @db.Uuid
+  documentId        String            @map("document_id") @db.Uuid
+  accessSubjectType AccessSubjectType @map("access_subject_type")
+  accessSubjectId   String            @map("access_subject_id") @db.Uuid
+  accessLevel       AccessLevel       @default(view) @map("access_level")
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_access_rules")
+}
+
+model WorkflowInstance {
+  id           String         @id @default(uuid()) @db.Uuid
+  orgId        String         @map("org_id") @db.Uuid
+  workflowType String         @map("workflow_type") @db.VarChar(100)
+  sourceType   String         @map("source_type") @db.VarChar(50)
+  sourceId     String         @map("source_id") @db.Uuid
+  currentState String         @default("initiated") @map("current_state") @db.VarChar(100)
+  status       WorkflowStatus @default(active)
+  startedAt    DateTime       @default(now()) @map("started_at") @db.Timestamptz
+  completedAt  DateTime?      @map("completed_at") @db.Timestamptz
+  initiatedBy  String?        @map("initiated_by") @db.Uuid
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  organization     Organization      @relation(fields: [orgId], references: [id])
+  initiator        User?             @relation(fields: [initiatedBy], references: [id])
+  events           WorkflowEvent[]
+  approvalRequests ApprovalRequest[]
+
+  @@index([sourceType, sourceId])
+  @@index([currentState, status])
+  @@map("workflow_instances")
+}
+
+model WorkflowEvent {
+  id                 String    @id @default(uuid()) @db.Uuid
+  workflowInstanceId String    @map("workflow_instance_id") @db.Uuid
+  eventType          String    @map("event_type") @db.VarChar(50)
+  fromState          String?   @map("from_state") @db.VarChar(100)
+  toState            String?   @map("to_state") @db.VarChar(100)
+  actorUserId        String?   @map("actor_user_id") @db.Uuid
+  actorType          ActorType @default(human) @map("actor_type")
+  payloadJsonb       Json?     @map("payload_jsonb")
+  occurredAt         DateTime  @default(now()) @map("occurred_at") @db.Timestamptz
+
+  workflowInstance WorkflowInstance @relation(fields: [workflowInstanceId], references: [id], onDelete: Cascade)
+  actor            User?            @relation(fields: [actorUserId], references: [id])
+
+  @@map("workflow_events")
+}
+
+model ApprovalRequest {
+  id                 String                @id @default(uuid()) @db.Uuid
+  orgId              String                @map("org_id") @db.Uuid
+  requestType        String                @map("request_type") @db.VarChar(50)
+  workflowInstanceId String?               @map("workflow_instance_id") @db.Uuid
+  sourceType         String                @map("source_type") @db.VarChar(50)
+  sourceId           String                @map("source_id") @db.Uuid
+  requesterUserId    String                @map("requester_user_id") @db.Uuid
+  currentStepNo      Int?                  @default(1) @map("current_step_no")
+  status             ApprovalRequestStatus @default(draft)
+  submittedAt        DateTime?             @map("submitted_at") @db.Timestamptz
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  isDeleted          Boolean               @default(false) @map("is_deleted")
+
+  organization     Organization      @relation(fields: [orgId], references: [id])
+  workflowInstance WorkflowInstance? @relation(fields: [workflowInstanceId], references: [id])
+  requester        User              @relation(fields: [requesterUserId], references: [id])
+  steps            ApprovalStep[]
+
+  @@index([orgId, status])
+  @@index([requesterUserId, status])
+  @@map("approval_requests")
+}
+
+model ApprovalStep {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  approvalRequestId   String                 @map("approval_request_id") @db.Uuid
+  stepNo              Int                    @map("step_no")
+  approverType        ApproverType           @map("approver_type")
+  approverReferenceId String?                @map("approver_reference_id") @db.Uuid
+  decisionStatus      ApprovalDecisionStatus @default(pending) @map("decision_status")
+  dueAt               DateTime?              @map("due_at") @db.Timestamptz
+  decidedAt           DateTime?              @map("decided_at") @db.Timestamptz
+  createdAt           DateTime               @default(now()) @map("created_at") @db.Timestamptz
+
+  approvalRequest ApprovalRequest    @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  decisions       ApprovalDecision[]
+
+  @@map("approval_steps")
+}
+
+model ApprovalDecision {
+  id               String               @id @default(uuid()) @db.Uuid
+  approvalStepId   String               @map("approval_step_id") @db.Uuid
+  decisionType     ApprovalDecisionType @map("decision_type")
+  decidedByUserId  String               @map("decided_by_user_id") @db.Uuid
+  decisionComment  String?              @map("decision_comment")
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
+
+  approvalStep ApprovalStep @relation(fields: [approvalStepId], references: [id], onDelete: Cascade)
+  decidedBy    User         @relation(fields: [decidedByUserId], references: [id])
+
+  @@map("approval_decisions")
+}
+
+// ============================================================
+// Models — Notifications, Audit, AI (Migration 004)
+// ============================================================
+
+model Notification {
+  id               String              @id @default(uuid()) @db.Uuid
+  orgId            String              @map("org_id") @db.Uuid
+  userId           String              @map("user_id") @db.Uuid
+  notificationType String              @map("notification_type") @db.VarChar(50)
+  title            String              @db.VarChar(500)
+  body             String?
+  deepLinkType     String?             @map("deep_link_type") @db.VarChar(50)
+  deepLinkId       String?             @map("deep_link_id") @db.Uuid
+  priority         NotificationPriority @default(normal)
+  status           NotificationStatus   @default(unread)
+  readAt           DateTime?           @map("read_at") @db.Timestamptz
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@index([userId, status, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id           String    @id @default(uuid()) @db.Uuid
+  orgId        String    @map("org_id") @db.Uuid
+  actorUserId  String?   @map("actor_user_id") @db.Uuid
+  actorType    ActorType @default(human) @map("actor_type")
+  entityType   String    @map("entity_type") @db.VarChar(50)
+  entityId     String    @map("entity_id") @db.Uuid
+  actionType   String    @map("action_type") @db.VarChar(50)
+  beforeJsonb  Json?     @map("before_jsonb")
+  afterJsonb   Json?     @map("after_jsonb")
+  metadataJsonb Json?    @map("metadata_jsonb")
+  occurredAt   DateTime  @default(now()) @map("occurred_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  actor        User?        @relation(fields: [actorUserId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@index([occurredAt])
+  @@map("audit_logs")
+}
+
+model AiRequest {
+  id               String          @id @default(uuid()) @db.Uuid
+  orgId            String          @map("org_id") @db.Uuid
+  requesterUserId  String?         @map("requester_user_id") @db.Uuid
+  requesterType    AiRequesterType @default(human) @map("requester_type")
+  aiTaskType       String          @map("ai_task_type") @db.VarChar(50)
+  sourceType       String?         @map("source_type") @db.VarChar(50)
+  sourceId         String?         @map("source_id") @db.Uuid
+  modelName        String?         @map("model_name") @db.VarChar(100)
+  requestStatus    AiRequestStatus @default(queued) @map("request_status")
+  tokenInputCount  Int?            @map("token_input_count")
+  tokenOutputCount Int?            @map("token_output_count")
+  costEstimate     Decimal?        @map("cost_estimate") @db.Decimal(10, 4)
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  completedAt      DateTime?       @map("completed_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  requester    User?        @relation(fields: [requesterUserId], references: [id])
+  outputs      AiOutput[]
+
+  @@index([aiTaskType, requestStatus])
+  @@index([sourceType, sourceId])
+  @@map("ai_requests")
+}
+
+model AiOutput {
+  id                 String       @id @default(uuid()) @db.Uuid
+  aiRequestId        String       @map("ai_request_id") @db.Uuid
+  outputType         AiOutputType @map("output_type")
+  outputText         String?      @map("output_text")
+  outputJsonb        Json?        @map("output_jsonb")
+  confidenceScore    Decimal?     @map("confidence_score") @db.Decimal(3, 2)
+  requiresHumanReview Boolean     @default(false) @map("requires_human_review")
+  approvedByUserId   String?      @map("approved_by_user_id") @db.Uuid
+  approvedAt         DateTime?    @map("approved_at") @db.Timestamptz
+  rejectedAt         DateTime?    @map("rejected_at") @db.Timestamptz
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  aiRequest  AiRequest @relation(fields: [aiRequestId], references: [id], onDelete: Cascade)
+  approvedBy User?     @relation(fields: [approvedByUserId], references: [id])
+
+  @@map("ai_outputs")
+}
