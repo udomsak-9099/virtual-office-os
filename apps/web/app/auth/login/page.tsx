@@ -1,13 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { login } from '@/lib/auth';
+import Script from 'next/script';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('admin');
   const [password, setPassword] = useState('1234');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +32,59 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      {/* Fallback inline script for when React hydration is slow */}
+      <Script id="login-fallback" strategy="afterInteractive">{`
+        (function() {
+          if (window.__loginAttached) return;
+          window.__loginAttached = true;
+
+          function attachLogin() {
+            var form = document.getElementById('login-form');
+            if (!form) { setTimeout(attachLogin, 500); return; }
+
+            form.addEventListener('submit', function(e) {
+              e.preventDefault();
+              var emailEl = document.getElementById('email');
+              var passEl = document.getElementById('password');
+              var btnEl = document.getElementById('login-btn');
+              var errEl = document.getElementById('login-error');
+
+              if (!emailEl || !passEl) return;
+
+              btnEl.textContent = 'Signing in...';
+              btnEl.disabled = true;
+              if (errEl) errEl.style.display = 'none';
+
+              fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: emailEl.value, password: passEl.value})
+              })
+              .then(function(r) { return r.json(); })
+              .then(function(d) {
+                if (d.data && d.data.access_token) {
+                  localStorage.setItem('vos_access_token', d.data.access_token);
+                  localStorage.setItem('vos_refresh_token', d.data.refresh_token);
+                  if (d.data.user) localStorage.setItem('vos_user', JSON.stringify(d.data.user));
+                  window.location.href = '/dashboard';
+                } else {
+                  throw new Error(d.message || d.error?.message || 'Login failed');
+                }
+              })
+              .catch(function(err) {
+                if (errEl) {
+                  errEl.textContent = err.message || 'Login failed';
+                  errEl.style.display = 'block';
+                }
+                btnEl.textContent = 'Sign In';
+                btnEl.disabled = false;
+              });
+            });
+          }
+          attachLogin();
+        })();
+      `}</Script>
+
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="text-center mb-8">
@@ -36,22 +95,26 @@ export default function LoginPage() {
             <p className="text-gray-500 mt-2">Sign in to your workspace</p>
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
-              {error}
-            </div>
-          )}
+          <div
+            id="login-error"
+            className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg"
+            style={{ display: error ? 'block' : 'none' }}
+          >
+            {error}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form id="login-form" onSubmit={hydrated ? handleSubmit : undefined} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Username
               </label>
               <input
                 id="email"
+                name="email"
                 type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                defaultValue="admin"
+                value={hydrated ? email : undefined}
+                onChange={hydrated ? (e) => setEmail(e.target.value) : undefined}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                 placeholder="admin"
                 required
@@ -64,9 +127,11 @@ export default function LoginPage() {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                defaultValue="1234"
+                value={hydrated ? password : undefined}
+                onChange={hydrated ? (e) => setPassword(e.target.value) : undefined}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
                 placeholder="Enter your password"
                 required
@@ -74,6 +139,7 @@ export default function LoginPage() {
             </div>
 
             <button
+              id="login-btn"
               type="submit"
               disabled={loading}
               className="w-full py-2.5 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
@@ -81,27 +147,6 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-400 text-center mb-2">Quick login:</p>
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { label: 'Admin', email: 'admin', pass: '1234' },
-                { label: 'CEO', email: 'ceo@demo.com', pass: '1234' },
-                { label: 'Ops', email: 'ops@demo.com', pass: '1234' },
-                { label: 'Finance', email: 'finance@demo.com', pass: '1234' },
-              ].map((demo) => (
-                <button
-                  key={demo.email}
-                  type="button"
-                  onClick={() => { setEmail(demo.email); setPassword(demo.pass); }}
-                  className="px-2 py-1.5 text-xs bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
-                >
-                  {demo.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
