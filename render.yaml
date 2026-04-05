@@ -1,0 +1,25 @@
+databases:
+  - name: vos-db
+    plan: free
+    databaseName: virtual_office_os
+    user: vos
+
+services:
+  - type: web
+    name: vos-api
+    plan: free
+    runtime: node
+    buildCommand: npm install --legacy-peer-deps && npx prisma generate --schema=packages/database/prisma/schema.prisma && npx nest build --path apps/api/tsconfig.json
+    startCommand: npx prisma db push --schema=packages/database/prisma/schema.prisma --skip-generate && node apps/api/dist/main.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vos-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: vos-production-secret-2026-change-me
+      - key: APP_PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /api/v1/auth/login
