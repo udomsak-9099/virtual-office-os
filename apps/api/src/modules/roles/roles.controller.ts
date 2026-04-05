@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('Roles')
 @ApiBearerAuth()
@@ -19,14 +20,18 @@ export class RolesController {
 
   @Get()
   @ApiOperation({ summary: 'List all roles' })
-  findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-    return this.rolesService.findAll({ page, limit });
+  findAll(
+    @CurrentUser() user: { org_id: string },
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.rolesService.findAll({ page, limit, org_id: user.org_id });
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a new role' })
-  create(@Body() dto: any) {
-    return this.rolesService.create(dto);
+  create(@CurrentUser() user: { org_id: string }, @Body() dto: any) {
+    return this.rolesService.create({ ...dto, org_id: user.org_id });
   }
 
   @Get(':id')

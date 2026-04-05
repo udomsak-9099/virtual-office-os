@@ -1,6 +1,8 @@
 'use client';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Use same-origin proxy (Next.js rewrites /api/* to backend)
+// This avoids all CORS and cross-domain issues
+const API_PREFIX = '/api/v1';
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -44,7 +46,7 @@ export function logout() {
 }
 
 export async function login(email: string, password: string) {
-  const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+  const res = await fetch(`${API_PREFIX}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -52,7 +54,7 @@ export async function login(email: string, password: string) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => null);
-    throw new Error(err?.error?.message || 'Login failed');
+    throw new Error(err?.error?.message || err?.message?.join?.(', ') || 'Login failed');
   }
 
   const { data } = await res.json();
@@ -69,7 +71,7 @@ export async function fetchApi<T = any>(path: string, options: RequestInit = {})
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}/api/v1${path}`, {
+  const res = await fetch(`${API_PREFIX}${path}`, {
     ...options,
     headers,
   });

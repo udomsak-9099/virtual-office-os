@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Home', href: '/', icon: '🏠', group: 'main' },
+  { label: 'Home', href: '/dashboard', icon: '🏠', group: 'main' },
   { label: 'Tasks', href: '/tasks', icon: '✓', group: 'work' },
   { label: 'Projects', href: '/projects', icon: '📋', group: 'work' },
   { label: 'Meetings', href: '/meetings', icon: '📅', group: 'work' },

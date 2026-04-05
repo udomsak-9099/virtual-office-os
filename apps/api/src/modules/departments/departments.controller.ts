@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { DepartmentsService } from './departments.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('Departments')
 @ApiBearerAuth()
@@ -19,14 +20,18 @@ export class DepartmentsController {
 
   @Get()
   @ApiOperation({ summary: 'List all departments' })
-  findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-    return this.departmentsService.findAll({ page, limit });
+  findAll(
+    @CurrentUser() user: { org_id: string },
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.departmentsService.findAll({ page, limit, org_id: user.org_id });
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a new department' })
-  create(@Body() dto: any) {
-    return this.departmentsService.create(dto);
+  create(@CurrentUser() user: { org_id: string }, @Body() dto: any) {
+    return this.departmentsService.create({ ...dto, org_id: user.org_id });
   }
 
   @Get(':id')

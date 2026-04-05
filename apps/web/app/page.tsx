@@ -1,21 +1,20 @@
-export default function LandingPage() {
+'use client';
+
+import { useEffect } from 'react';
+import { isLoggedIn } from '@/lib/auth';
+
+export default function RootPage() {
+  useEffect(() => {
+    if (isLoggedIn()) {
+      window.location.href = '/dashboard';
+    } else {
+      window.location.href = '/auth/login';
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 to-brand-100">
-      <div className="text-center max-w-2xl mx-auto px-6">
-        <h1 className="text-5xl font-bold text-brand-900 mb-4">
-          Virtual Office OS
-        </h1>
-        <p className="text-xl text-brand-700 mb-8">
-          Digital headquarters platform for modern companies.
-          Manage communications, tasks, documents, approvals, and AI — all in one place.
-        </p>
-        <a
-          href="/auth/login"
-          className="inline-flex items-center px-8 py-3 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 transition-colors"
-        >
-          Get Started
-        </a>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
     </div>
   );
 }

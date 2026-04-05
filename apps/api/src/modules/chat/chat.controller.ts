@@ -1,13 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('Chat')
 @ApiBearerAuth()
@@ -17,17 +11,14 @@ export class ChatController {
 
   @Get('channels')
   @ApiOperation({ summary: 'List chat channels' })
-  getChannels(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return this.chatService.getChannels({ page, limit });
+  getChannels(@CurrentUser() user: any) {
+    return this.chatService.getChannels(user.org_id, user.id);
   }
 
   @Post('channels')
   @ApiOperation({ summary: 'Create a new chat channel' })
-  createChannel(@Body() dto: { name: string; type?: string; member_ids?: string[] }) {
-    return this.chatService.createChannel(dto);
+  createChannel(@CurrentUser() user: any, @Body() dto: { name: string; type?: string; memberIds?: string[] }) {
+    return this.chatService.createChannel(user.org_id, user.id, dto);
   }
 
   @Get('channels/:id/messages')
@@ -36,17 +27,13 @@ export class ChatController {
     @Param('id') id: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('before') before?: string,
   ) {
-    return this.chatService.getMessages(id, { page, limit, before });
+    return this.chatService.getMessages(id, page ? +page : 1, limit ? +limit : 50);
   }
 
   @Post('channels/:id/messages')
   @ApiOperation({ summary: 'Send a message to a chat channel' })
-  sendMessage(
-    @Param('id') id: string,
-    @Body() dto: { body: string; attachments?: any[] },
-  ) {
-    return this.chatService.sendMessage(id, dto);
+  sendMessage(@CurrentUser() user: any, @Param('id') id: string, @Body() dto: { body: string }) {
+    return this.chatService.sendMessage(id, user.id, dto);
   }
 }
