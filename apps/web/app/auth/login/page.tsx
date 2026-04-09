@@ -88,10 +88,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-brand-600 text-white rounded-xl flex items-center justify-center text-xl font-bold mx-auto mb-4">
-              V
+            <div className="w-14 h-14 bg-brand-600 text-white rounded-xl flex items-center justify-center text-base font-bold mx-auto mb-4 tracking-tight">
+              LAWI
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Virtual Office OS</h1>
+            <h1 className="text-2xl font-bold text-gray-900">LAWI</h1>
             <p className="text-gray-500 mt-2">Sign in to your workspace</p>
           </div>
 

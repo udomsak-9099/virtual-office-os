@@ -1,6 +1,6 @@
 {
-  "name": "Virtual Office OS",
-  "short_name": "VOS",
+  "name": "LAWI",
+  "short_name": "LAWI",
   "description": "Digital headquarters platform — manage tasks, meetings, documents, approvals, and AI in one place",
   "start_url": "/dashboard",
   "scope": "/",

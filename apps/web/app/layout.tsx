@@ -3,14 +3,14 @@ import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Virtual Office OS',
+  title: 'LAWI',
   description: 'Digital headquarters platform — manage tasks, meetings, documents, approvals, and AI in one place',
-  applicationName: 'Virtual Office OS',
+  applicationName: 'LAWI',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'VOS',
+    title: 'LAWI',
   },
   formatDetection: {
     telephone: false,
@@ -44,7 +44,7 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="VOS" />
+        <meta name="apple-mobile-web-app-title" content="LAWI" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
