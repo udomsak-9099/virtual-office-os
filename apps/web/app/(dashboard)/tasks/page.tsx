@@ -1,103 +1,134 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/auth';
 
-const mockTasks = [
-  { id: 1, title: 'Review proposal for ABC client', status: 'In Progress', priority: 'High', assignee: 'Sompong K.', due: 'Apr 5' },
-  { id: 2, title: 'Prepare Q1 board pack', status: 'To Do', priority: 'Medium', assignee: 'Naree P.', due: 'Apr 6' },
-  { id: 3, title: 'Approve vendor shortlist for IT equipment', status: 'In Progress', priority: 'High', assignee: 'You', due: 'Apr 5' },
-  { id: 4, title: 'Update SOP for procurement flow', status: 'To Do', priority: 'Low', assignee: 'Ariya T.', due: 'Apr 8' },
-  { id: 5, title: 'Submit monthly compliance report', status: 'Done', priority: 'Medium', assignee: 'You', due: 'Apr 3' },
-  { id: 6, title: 'Negotiate contract terms with vendor D', status: 'In Progress', priority: 'High', assignee: 'Kittipong S.', due: 'Apr 7' },
-  { id: 7, title: 'Onboard new hire — engineering team', status: 'To Do', priority: 'Medium', assignee: 'Naree P.', due: 'Apr 10' },
-  { id: 8, title: 'Fix CI pipeline for staging env', status: 'Done', priority: 'Low', assignee: 'Ariya T.', due: 'Apr 2' },
-];
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  dueAt?: string | null;
+  assignee?: { id: string; displayName: string } | null;
+  owner?: { id: string; displayName: string } | null;
+  project?: { id: string; name: string; code: string } | null;
+  department?: { id: string; name: string } | null;
+}
 
-const statusColor: Record<string, string> = {
-  'To Do': 'bg-gray-100 text-gray-600',
-  'In Progress': 'bg-blue-50 text-blue-600',
-  Done: 'bg-green-50 text-green-600',
+const statusColors: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-600',
+  open: 'bg-blue-50 text-blue-700',
+  in_progress: 'bg-purple-50 text-purple-700',
+  blocked: 'bg-red-50 text-red-700',
+  review: 'bg-yellow-50 text-yellow-700',
+  completed: 'bg-green-50 text-green-700',
+  cancelled: 'bg-gray-50 text-gray-400',
 };
 
-const priorityColor: Record<string, string> = {
-  High: 'bg-red-50 text-red-600',
-  Medium: 'bg-yellow-50 text-yellow-600',
-  Low: 'bg-gray-50 text-gray-500',
+const priorityColors: Record<string, string> = {
+  critical: 'bg-red-100 text-red-700',
+  high: 'bg-red-50 text-red-600',
+  medium: 'bg-yellow-50 text-yellow-600',
+  low: 'bg-gray-50 text-gray-500',
 };
 
 export default function TasksPage() {
-  const [filter, setFilter] = useState('All');
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>('all');
+  const [search, setSearch] = useState('');
 
-  const filtered = filter === 'All' ? mockTasks : mockTasks.filter((t) => t.status === filter);
+  useEffect(() => {
+    api.get('/tasks?page_size=100')
+      .then((res: any) => setTasks(res.data || []))
+      .catch(() => setTasks([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = tasks.filter((t) => {
+    if (filter === 'open' && !['open', 'in_progress', 'blocked', 'review'].includes(t.status)) return false;
+    if (filter === 'in_progress' && t.status !== 'in_progress') return false;
+    if (filter === 'completed' && t.status !== 'completed') return false;
+    if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
-          <p className="text-gray-500 mt-1">Manage and track all your tasks in one place.</p>
+          <p className="text-gray-500 mt-1">{tasks.length} tasks across Lawi projects</p>
         </div>
-        <button className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-colors">
-          + Create Task
-        </button>
+        <button className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700">+ Create Task</button>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-        {['All', 'To Do', 'In Progress', 'Done'].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
-              filter === f ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-        <div className="ml-auto">
-          <input
-            type="text"
-            placeholder="Search tasks..."
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
+      <div className="flex items-center gap-3">
+        <div className="flex bg-white border border-gray-200 rounded-lg p-1">
+          {[
+            { k: 'all', label: 'All' },
+            { k: 'open', label: 'Open' },
+            { k: 'in_progress', label: 'In Progress' },
+            { k: 'completed', label: 'Done' },
+          ].map((f) => (
+            <button
+              key={f.k}
+              onClick={() => setFilter(f.k)}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${filter === f.k ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
+        <input
+          type="text"
+          placeholder="Search tasks..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 max-w-md px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
       </div>
 
-      {/* Task Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Task</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Status</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Priority</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Assignee</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Due Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((task) => (
-              <tr key={task.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-                <td className="py-3 px-4 text-gray-800 font-medium">{task.title}</td>
-                <td className="py-3 px-4">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[task.status]}`}>
-                    {task.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${priorityColor[task.priority]}`}>
-                    {task.priority}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-gray-600">{task.assignee}</td>
-                <td className="py-3 px-4 text-gray-400">{task.due}</td>
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr className="text-left text-xs text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 font-semibold">Task</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Priority</th>
+                <th className="px-4 py-3 font-semibold">Project</th>
+                <th className="px-4 py-3 font-semibold">Assignee</th>
+                <th className="px-4 py-3 font-semibold">Due</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">No tasks</td></tr>
+              ) : (
+                filtered.map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-3">
+                      <div className="text-sm font-medium text-gray-900">{t.title}</div>
+                      {t.description && <div className="text-xs text-gray-500 line-clamp-1 max-w-lg mt-0.5">{t.description}</div>}
+                    </td>
+                    <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[t.status] || 'bg-gray-100'}`}>{t.status}</span></td>
+                    <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${priorityColors[t.priority] || 'bg-gray-50'}`}>{t.priority}</span></td>
+                    <td className="px-4 py-3 text-xs text-gray-600">{t.project ? <span className="font-mono">{t.project.code}</span> : (t.department?.name || '-')}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600">{t.assignee?.displayName || '-'}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{t.dueAt ? new Date(t.dueAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) : '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

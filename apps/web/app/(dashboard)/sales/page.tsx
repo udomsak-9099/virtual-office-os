@@ -1,113 +1,131 @@
-const pipelineKpis = [
-  { label: 'Total Pipeline', value: '฿12.5M', change: '+8%', color: 'text-blue-600', bg: 'bg-blue-50' },
-  { label: 'Qualified Leads', value: '34', change: '+5', color: 'text-green-600', bg: 'bg-green-50' },
-  { label: 'Won This Month', value: '฿3.2M', change: '+12%', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { label: 'Avg Deal Size', value: '฿420K', change: '-3%', color: 'text-purple-600', bg: 'bg-purple-50' },
-];
-
-const pipelineStages = [
-  { stage: 'Lead', count: 18, value: '฿2.1M', color: 'bg-gray-400' },
-  { stage: 'Qualified', count: 12, value: '฿3.4M', color: 'bg-blue-400' },
-  { stage: 'Proposal', count: 8, value: '฿4.2M', color: 'bg-yellow-400' },
-  { stage: 'Negotiation', count: 4, value: '฿2.1M', color: 'bg-orange-400' },
-  { stage: 'Closed Won', count: 6, value: '฿3.2M', color: 'bg-green-400' },
-];
-
-const leads = [
-  { company: 'TechVision Corp', contact: 'Somchai R.', stage: 'Proposal', value: '฿850K', probability: '60%', nextAction: 'Send revised proposal', due: 'Apr 6' },
-  { company: 'Global Logistics', contact: 'Pranee W.', stage: 'Negotiation', value: '฿1.2M', probability: '75%', nextAction: 'Final pricing review', due: 'Apr 5' },
-  { company: 'MedTech Solutions', contact: 'Wichai K.', stage: 'Qualified', value: '฿500K', probability: '40%', nextAction: 'Schedule demo', due: 'Apr 7' },
-  { company: 'BankCo International', contact: 'Supaporn L.', stage: 'Proposal', value: '฿2.1M', probability: '55%', nextAction: 'Presentation to board', due: 'Apr 8' },
-  { company: 'AutoParts Ltd', contact: 'Pichet M.', stage: 'Lead', value: '฿300K', probability: '20%', nextAction: 'Initial call', due: 'Apr 9' },
-  { company: 'CloudNine Services', contact: 'Kannika S.', stage: 'Negotiation', value: '฿680K', probability: '80%', nextAction: 'Contract review', due: 'Apr 5' },
-];
-
-const stageColor: Record<string, string> = {
-  Lead: 'bg-gray-100 text-gray-600',
-  Qualified: 'bg-blue-50 text-blue-600',
-  Proposal: 'bg-yellow-50 text-yellow-600',
-  Negotiation: 'bg-orange-50 text-orange-600',
-  'Closed Won': 'bg-green-50 text-green-600',
-};
+'use client';
 
 export default function SalesPage() {
+  const revenueMix = [
+    { name: 'WTE Development', value: 637, percent: 49, color: 'bg-blue-500' },
+    { name: 'Biomass Acquisition', value: 307, percent: 23, color: 'bg-green-500' },
+    { name: 'RDF Machinery', value: 297, percent: 23, color: 'bg-purple-500' },
+    { name: 'Activated Carbon', value: 70, percent: 5, color: 'bg-orange-500' },
+  ];
+
+  const offtakers = [
+    { name: 'PEA — Provincial Electricity Authority', type: 'PPA Off-taker', project: 'UPT Biomass (PPA to 2039)', status: 'Active' },
+    { name: 'GULF Energy Development', type: 'AC Off-taker', project: 'Activated Carbon Ayutthaya', status: 'LOI Signed' },
+    { name: 'BWG (Better World Green)', type: 'AC Off-taker', project: 'Activated Carbon Ayutthaya', status: 'In Negotiation' },
+    { name: 'GP4 WTE Plant', type: 'RDF Off-taker', project: 'RDF Surat Thani', status: 'In Development' },
+    { name: 'TPCH — T.P.C. Power Holding', type: 'RDF Off-taker', project: 'RDF Nonthaburi (24MW)', status: 'In Development' },
+  ];
+
+  const investors = [
+    { name: 'Thai Investors Group', stake: '51%', type: 'Strategic', status: 'Committed' },
+    { name: 'Malaysian Investors Group', stake: '49%', type: 'Strategic', status: 'Committed' },
+    { name: 'Green Financing Banks (BBL/KBANK/SCB)', stake: 'Debt 2,450 MB', type: 'Debt Provider', status: 'In Discussion' },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Sales Dashboard</h1>
-        <p className="text-gray-500 mt-1">Pipeline overview and lead management.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Commercial & Off-take</h1>
+        <p className="text-gray-500 mt-1">Lawi revenue pipeline — off-takers and commercial partnerships</p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {pipelineKpis.map((kpi, i) => (
-          <div key={i} className={`${kpi.bg} rounded-xl border border-gray-100 p-5`}>
-            <p className="text-sm text-gray-600">{kpi.label}</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <p className={`text-3xl font-bold ${kpi.color}`}>{kpi.value}</p>
-              <span className={`text-xs font-medium ${kpi.change.startsWith('+') ? 'text-green-600' : 'text-red-500'}`}>
-                {kpi.change}
-              </span>
-            </div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
+          <p className="text-sm text-gray-600">Target Annual Revenue</p>
+          <p className="text-3xl font-bold text-blue-600 mt-1">1,312</p>
+          <p className="text-xs text-gray-500 mt-1">MB at full run-rate</p>
+        </div>
+        <div className="bg-green-50 rounded-xl p-5 border border-green-100">
+          <p className="text-sm text-gray-600">Target EBITDA</p>
+          <p className="text-3xl font-bold text-green-600 mt-1">723</p>
+          <p className="text-xs text-gray-500 mt-1">MB (55% margin)</p>
+        </div>
+        <div className="bg-purple-50 rounded-xl p-5 border border-purple-100">
+          <p className="text-sm text-gray-600">Active Off-takers</p>
+          <p className="text-3xl font-bold text-purple-600 mt-1">{offtakers.length}</p>
+        </div>
+        <div className="bg-orange-50 rounded-xl p-5 border border-orange-100">
+          <p className="text-sm text-gray-600">Contract Avg Tenor</p>
+          <p className="text-3xl font-bold text-orange-600 mt-1">15+</p>
+          <p className="text-xs text-gray-500 mt-1">years</p>
+        </div>
       </div>
 
-      {/* Pipeline Funnel */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Pipeline Stages</h2>
-        <div className="flex items-end gap-2 h-32">
-          {pipelineStages.map((stage, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-2">
-              <span className="text-xs font-medium text-gray-700">{stage.value}</span>
-              <div
-                className={`w-full rounded-t-lg ${stage.color}`}
-                style={{ height: `${(stage.count / 18) * 100}%`, minHeight: '20px' }}
-              />
-              <div className="text-center">
-                <p className="text-xs font-medium text-gray-700">{stage.stage}</p>
-                <p className="text-xs text-gray-400">{stage.count} deals</p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue Mix by Business Unit</h2>
+        <div className="space-y-3">
+          {revenueMix.map((r) => (
+            <div key={r.name}>
+              <div className="flex justify-between mb-1">
+                <span className="text-sm text-gray-700">{r.name}</span>
+                <span className="text-sm text-gray-900 font-semibold">{r.value} MB <span className="text-gray-400">({r.percent}%)</span></span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className={`${r.color} h-2 rounded-full`} style={{ width: `${r.percent}%` }}></div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Lead List */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Active Leads</h2>
-          <button className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-colors">
-            + Add Lead
-          </button>
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Off-taker Pipeline</h2>
         </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Company</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Contact</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Stage</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Value</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Prob.</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Next Action</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Due</th>
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr className="text-left text-xs text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 font-semibold">Counterparty</th>
+              <th className="px-4 py-3 font-semibold">Type</th>
+              <th className="px-4 py-3 font-semibold">Project</th>
+              <th className="px-4 py-3 font-semibold">Status</th>
             </tr>
           </thead>
-          <tbody>
-            {leads.map((lead, i) => (
-              <tr key={i} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-                <td className="py-3 px-4 text-gray-800 font-medium">{lead.company}</td>
-                <td className="py-3 px-4 text-gray-600">{lead.contact}</td>
-                <td className="py-3 px-4">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${stageColor[lead.stage]}`}>
-                    {lead.stage}
+          <tbody className="divide-y divide-gray-100">
+            {offtakers.map((o, i) => (
+              <tr key={i} className="hover:bg-gray-50">
+                <td className="px-6 py-3 text-sm font-medium text-gray-900">{o.name}</td>
+                <td className="px-4 py-3 text-xs text-gray-600">{o.type}</td>
+                <td className="px-4 py-3 text-xs text-gray-600">{o.project}</td>
+                <td className="px-4 py-3">
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    o.status === 'Active' ? 'bg-green-50 text-green-700' :
+                    o.status.includes('Signed') ? 'bg-blue-50 text-blue-700' :
+                    'bg-yellow-50 text-yellow-700'
+                  }`}>
+                    {o.status}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-gray-700 font-medium">{lead.value}</td>
-                <td className="py-3 px-4 text-gray-500">{lead.probability}</td>
-                <td className="py-3 px-4 text-gray-600">{lead.nextAction}</td>
-                <td className="py-3 px-4 text-gray-400">{lead.due}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Investor & Financing Pipeline</h2>
+        </div>
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr className="text-left text-xs text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 font-semibold">Investor</th>
+              <th className="px-4 py-3 font-semibold">Stake / Amount</th>
+              <th className="px-4 py-3 font-semibold">Type</th>
+              <th className="px-4 py-3 font-semibold">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {investors.map((inv, i) => (
+              <tr key={i} className="hover:bg-gray-50">
+                <td className="px-6 py-3 text-sm font-medium text-gray-900">{inv.name}</td>
+                <td className="px-4 py-3 text-sm text-gray-700 font-mono">{inv.stake}</td>
+                <td className="px-4 py-3 text-xs text-gray-600">{inv.type}</td>
+                <td className="px-4 py-3">
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${inv.status === 'Committed' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
+                    {inv.status}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>

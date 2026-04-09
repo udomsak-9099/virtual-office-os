@@ -1,85 +1,132 @@
-const mockProjects = [
-  { name: 'Website Redesign', status: 'Active', progress: 72, members: 5, color: 'bg-blue-500' },
-  { name: 'ERP Migration Phase 2', status: 'Active', progress: 45, members: 8, color: 'bg-purple-500' },
-  { name: 'Mobile App MVP', status: 'Active', progress: 30, members: 4, color: 'bg-green-500' },
-  { name: 'Compliance Audit 2026', status: 'Planning', progress: 10, members: 3, color: 'bg-orange-500' },
-  { name: 'Vendor Portal Integration', status: 'On Hold', progress: 60, members: 6, color: 'bg-yellow-500' },
-  { name: 'Data Warehouse v3', status: 'Active', progress: 88, members: 7, color: 'bg-indigo-500' },
-];
+'use client';
 
-const statusBadge: Record<string, string> = {
-  Active: 'bg-green-50 text-green-600',
-  Planning: 'bg-blue-50 text-blue-600',
-  'On Hold': 'bg-yellow-50 text-yellow-600',
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/auth';
+import Link from 'next/link';
+
+interface Project {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  status: string;
+  priority: string;
+  startDate?: string;
+  endDate?: string;
+  owner?: { id: string; displayName: string };
+  department?: { id: string; name: string };
+  memberCount?: number;
+  taskCount?: number;
+  documentCount?: number;
+}
+
+const statusColors: Record<string, string> = {
+  planning: 'bg-blue-50 text-blue-700',
+  active: 'bg-green-50 text-green-700',
+  on_hold: 'bg-yellow-50 text-yellow-700',
+  completed: 'bg-gray-100 text-gray-600',
+  archived: 'bg-gray-50 text-gray-500',
+};
+
+const priorityColors: Record<string, string> = {
+  critical: 'bg-red-100 text-red-700',
+  high: 'bg-red-50 text-red-600',
+  medium: 'bg-yellow-50 text-yellow-600',
+  low: 'bg-gray-50 text-gray-500',
 };
 
 export default function ProjectsPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/projects')
+      .then((res: any) => setProjects(res.data || []))
+      .catch(() => setProjects([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-500 mt-1">Track all active projects and their progress.</p>
+          <p className="text-gray-500 mt-1">Lawi Investment Pipeline — {projects.length} active projects</p>
         </div>
         <button className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-colors">
           + New Project
         </button>
       </div>
 
-      {/* Project Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {mockProjects.map((project, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${project.color}`} />
-                <h3 className="text-sm font-semibold text-gray-900">{project.name}</h3>
-              </div>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusBadge[project.status]}`}>
-                {project.status}
-              </span>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-500">Progress</span>
-                <span className="text-xs font-medium text-gray-700">{project.progress}%</span>
-              </div>
-              <div className="w-full h-2 bg-gray-100 rounded-full">
-                <div
-                  className={`h-2 rounded-full ${project.color}`}
-                  style={{ width: `${project.progress}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Members */}
-            <div className="flex items-center justify-between">
-              <div className="flex -space-x-2">
-                {Array.from({ length: Math.min(project.members, 4) }).map((_, j) => (
-                  <div
-                    key={j}
-                    className="w-7 h-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[10px] text-gray-500 font-medium"
-                  >
-                    {String.fromCharCode(65 + j)}
+      {projects.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+          <p>No projects yet</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {projects.map((p) => (
+            <Link
+              key={p.id}
+              href={`/projects/${p.id}`}
+              className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md hover:border-brand-200 transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono text-brand-600 font-semibold">{p.code}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[p.status] || 'bg-gray-100'}`}>
+                      {p.status}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${priorityColors[p.priority] || 'bg-gray-50'}`}>
+                      {p.priority}
+                    </span>
                   </div>
-                ))}
-                {project.members > 4 && (
-                  <div className="w-7 h-7 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[10px] text-gray-500 font-medium">
-                    +{project.members - 4}
+                  <h3 className="font-semibold text-gray-900 text-base leading-snug">{p.name}</h3>
+                </div>
+              </div>
+
+              {p.description && (
+                <p className="text-sm text-gray-600 line-clamp-2 mb-4">{p.description}</p>
+              )}
+
+              <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
+                {p.department && (
+                  <div className="flex items-center gap-1">
+                    <span>🏢</span>
+                    <span className="truncate max-w-[140px]">{p.department.name}</span>
+                  </div>
+                )}
+                {p.owner && (
+                  <div className="flex items-center gap-1">
+                    <span>👤</span>
+                    <span className="truncate max-w-[120px]">{p.owner.displayName}</span>
+                  </div>
+                )}
+                {typeof p.memberCount === 'number' && (
+                  <div className="flex items-center gap-1">
+                    <span>👥</span>
+                    <span>{p.memberCount}</span>
+                  </div>
+                )}
+                {typeof p.taskCount === 'number' && (
+                  <div className="flex items-center gap-1">
+                    <span>✓</span>
+                    <span>{p.taskCount}</span>
                   </div>
                 )}
               </div>
-              <span className="text-xs text-gray-400">{project.members} members</span>
-            </div>
-          </div>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
